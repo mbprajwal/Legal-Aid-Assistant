@@ -1,0 +1,14 @@
+{
+    "title": "Legal Notice",
+    "fields": {
+      "sender_name": "Sender Name",
+      "sender_address": "Sender Address",
+      "recipient_name": "Recipient Name",
+      "recipient_address": "Recipient Address",
+      "subject": "Subject of Notice",
+      "issue_details": "Issue / Dispute Details",
+      "resolution": "Resolution Demanded"
+    },
+    "instructions": "Draft a formal legal notice using concise legal language. Be neutral, factual, and avoid emotional tone."
+  }
+  

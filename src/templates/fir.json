@@ -1,0 +1,11 @@
+{
+    "title": "First Information Report (FIR)",
+    "fields": {
+      "name": "Complainant Name",
+      "address": "Address",
+      "date": "Date of Incident",
+      "details": "Incident Details"
+    },
+    "instructions": "Write a formal and factual FIR following Indian legal structure."
+  }
+  

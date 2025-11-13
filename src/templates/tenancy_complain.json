@@ -1,0 +1,12 @@
+{
+    "title": "Tenant–Landlord Dispute Complaint",
+    "fields": {
+      "tenant_name": "Tenant Name",
+      "landlord_name": "Landlord Name",
+      "property_address": "Property Address",
+      "issue_details": "Dispute Details",
+      "duration": "Duration of Tenancy"
+    },
+    "instructions": "Draft a formal complaint letter regarding a tenancy dispute. Use clear legal tone. No emotional language."
+  }
+  

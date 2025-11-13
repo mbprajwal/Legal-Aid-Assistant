@@ -1,0 +1,11 @@
+{
+    "title": "Caste Certificate Application",
+    "fields": {
+      "applicant_name": "Applicant Name",
+      "address": "Address",
+      "caste": "Caste",
+      "reason": "Reason for Requirement"
+    },
+    "instructions": "Draft a formal caste certificate request for submission to a government authority. Keep it factual and concise."
+  }
+  

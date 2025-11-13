@@ -1,0 +1,12 @@
+{
+    "title": "Right to Information (RTI) Application",
+    "fields": {
+      "applicant_name": "Applicant Name",
+      "address": "Applicant Address",
+      "public_authority": "Public Authority Name",
+      "information_needed": "Information Required",
+      "period": "Time Period (if any)"
+    },
+    "instructions": "Draft a clear, concise RTI application as per RTI Act 2005. Use formal Indian government letter format."
+  }
+  

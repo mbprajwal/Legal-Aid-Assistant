@@ -1,0 +1,11 @@
+{
+    "title": "Income Certificate Application",
+    "fields": {
+      "applicant_name": "Applicant Name",
+      "address": "Address",
+      "reason": "Reason for Application",
+      "annual_income": "Annual Income"
+    },
+    "instructions": "Draft a formal request for an income certificate addressed to the Tahsildar or local revenue authority."
+  }
+  

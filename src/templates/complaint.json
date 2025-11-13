@@ -1,0 +1,11 @@
+{
+    "title": "Police Complaint",
+    "fields": {
+      "complainant_name": "Complainant Name",
+      "address": "Address",
+      "date": "Date",
+      "details": "Complaint Details"
+    },
+    "instructions": "Draft a formal written complaint addressed to the Station House Officer (SHO). Use police documentation tone."
+  }
+  

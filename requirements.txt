@@ -1,0 +1,32 @@
+# --------------------------
+# LangChain Core
+# --------------------------
+langchain
+langchain-community
+langchain-core
+langchain-text-splitters
+langchain-pinecone
+langchain-ollama
+
+# --------------------------
+# Vector DB + Embeddings
+# --------------------------
+pinecone-client
+sentence-transformers
+
+# --------------------------
+# Audio / Speech-to-Text
+# --------------------------
+openai-whisper
+sounddevice
+scipy
+numpy
+
+# --------------------------
+# Utilities
+# --------------------------
+python-dotenv
+pandas
+requests
+tqdm
+fpdf
