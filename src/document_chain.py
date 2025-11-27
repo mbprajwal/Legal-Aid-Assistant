@@ -3,6 +3,7 @@
 import os
 import json
 from fpdf import FPDF
+import datetime
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
@@ -84,11 +85,41 @@ Follow these rules:
     # ------------------------------------------------------------
     # Export to PDF
     # ------------------------------------------------------------
-    def save_pdf(self, content: str, filename: str) -> str:
+
+    def save_pdf(self, content: str, filename: str = None) -> str:
+        """
+        Save PDF inside a timestamped directory so files never overwrite.
+        Auto-generates filenames if not provided.
+        """
+
+        # ---------- Create base directory ----------
+        base_dir = "generated_documents"
+        os.makedirs(base_dir, exist_ok=True)
+
+        # ---------- Create unique folder per-generation ----------
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_dir = os.path.join(base_dir, timestamp)
+        os.makedirs(output_dir, exist_ok=True)
+
+        # ---------- Generate unique filename ----------
+        if filename is None:
+            filename = f"document_{timestamp}.pdf"
+        else:
+            # add timestamp to avoid overwriting
+            name, ext = os.path.splitext(filename)
+            filename = f"{name}_{timestamp}{ext}"
+
+        save_path = os.path.join(output_dir, filename)
+
+        # ---------- Write PDF ----------
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=12)
+
         for line in content.split("\n"):
             pdf.multi_cell(0, 8, line)
-        pdf.output(filename)
-        return os.path.abspath(filename)
+
+        pdf.output(save_path)
+
+        return os.path.abspath(save_path)
+

@@ -42,7 +42,7 @@ user_inputs = {
     "name": "Ramesh",
     "address": "Mysuru",
     "date": "2025-01-10",
-    "details": "My phone was stolen while waiting at the bus stop."
+    "details": "My phone was stolen while waiting at the bus stop, I could partially notice the theif's clothes, he was wearing a black shirt and a blue jeans, he had his face covered with a mask and looked a bit lean."
 }
 
 # ------------------------------------------------------------

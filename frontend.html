@@ -2,7 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Legal Aid Chat - Test UI</title>
+<title>Legal Aid Chat - Test UI + Voice</title>
+
+<!-- LiveKit Browser SDK -->
+<script type="module">
+    import { VoiceAssistant } from "https://unpkg.com/@livekit/agents-browser@latest/dist/index.js";
+
+    window.startVoiceAssistant = async function () {
+        const serverUrl = "wss://legal-aid-assistant-3k5z25gv.livekit.cloud";   // TODO: replace
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjMzNjA5NjYsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUElZZEJReVhvclpTVWMiLCJuYmYiOjE3NjMzNjAwNjYsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6ImFkbWluIiwicm9vbUpvaW4iOnRydWV9fQ.em25l5XfyT9aaR7d-t7T0PaPbu8q62N7_XEsfN63js0";           // TODO: replace
+
+        const container = document.getElementById("voice-container");
+        container.innerHTML = "<p>🎤 Initializing voice assistant...</p>";
+
+        try {
+            const assistant = await VoiceAssistant.connect({
+                url: serverUrl,
+                token: token,
+                autoStart: true,
+                vad: true,      // voice activity detection
+            });
+
+            container.innerHTML = "";
+            assistant.mount(container);
+
+            console.log("Voice Assistant Ready!");
+        } catch (err) {
+            container.innerHTML = "<p style='color:red;'>Error starting voice assistant.</p>";
+            console.error(err);
+        }
+    }
+</script>
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -42,41 +73,65 @@
         background: #e9f5ff;
         border-radius: 8px;
     }
+
+    #voice-container {
+        margin-top: 25px;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+    }
+
 </style>
 </head>
 <body>
 
-<h2>⚖️ Legal Aid Chat - Frontend Test</h2>
+<h2>⚖️ Legal Aid Chat (Text + Voice Test)</h2>
+
 <div id="chat-box">
     <div id="messages"></div>
 
     <textarea id="userInput" placeholder="Type your question..."></textarea>
     <button onclick="sendMessage()">Send</button>
+
+    <hr>
+    <h3>🎤 Voice Assistant</h3>
+    <button onclick="startVoiceAssistant()">Start Voice Chat</button>
+    <div id="voice-container"></div>
 </div>
 
-<script>
-async function sendMessage() {
-    const input = document.getElementById("userInput").value.trim();
-    if (!input) return;
+<script type="module">
+    import { VoiceAssistant } from "https://unpkg.com/@livekit/agents-browser@latest/dist/index.js";
 
-    document.getElementById("messages").innerHTML += 
-        `<div class="msg"><b>You:</b> ${input}</div>`;
+    window.startVoiceAssistant = async function () {
+        console.log("🎤 Start button clicked!");
 
-    // Send to FastAPI backend
-    const response = await fetch("http://127.0.0.1:8000/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_query: input })
-    });
+        const serverUrl = "wss://legal-aid-assistant-3k5z25gv.livekit.cloud";
+        const token = "YOUR_NEW_AGENT_TOKEN_HERE";
 
-    let data = await response.json();
+        const container = document.getElementById("voice-container");
+        container.innerHTML = "<p>🎤 Initializing voice assistant...</p>";
 
-    document.getElementById("messages").innerHTML += 
-        `<div class="msg"><b>Bot:</b> ${data.response || data}</div>`;
+        try {
+            const assistant = await VoiceAssistant.connect({
+                url: serverUrl,
+                token,
+                autoStart: true,
+                vad: true,
+            });
 
-    document.getElementById("userInput").value = "";
-}
+            container.innerHTML = "";
+            assistant.mount(container);
+
+            console.log("Voice Assistant Ready!");
+
+        } catch (err) {
+            console.error("❌ Voice Assistant Error:", err);
+            container.innerHTML = "<p style='color:red;'>Error starting voice assistant. Check console.</p>";
+        }
+    }
 </script>
+
 
 </body>
 </html>

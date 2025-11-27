@@ -30,3 +30,13 @@ pandas
 requests
 tqdm
 fpdf
+
+# --------------------------
+# Livekit dependencies 
+# --------------------------
+livekit-agents
+livekit-plugins-langchain
+livekit-plugins-openai
+langchain
+langchain-core
+langchain-ollama
