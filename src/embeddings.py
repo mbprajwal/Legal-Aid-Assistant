@@ -43,7 +43,12 @@ class LocalSentenceTransformerEmbeddings(Embeddings):
 
 def load_embedding_model():
     """
-    Loads your local MiniLM sentence-transformer model.
-    Edit path below if you move the model folder.
+    Loads the sentence transformer model.
+    If local path exists, use it. Otherwise, use a default HuggingFace model.
     """
-    return LocalSentenceTransformerEmbeddings(model_path=MODEL_PATH)
+    if MODEL_PATH and os.path.exists(MODEL_PATH):
+        return LocalSentenceTransformerEmbeddings(model_path=MODEL_PATH)
+    
+    print(f"Local model not found at {MODEL_PATH}. Using default HuggingFace model: all-MiniLM-L6-v2")
+    from langchain_community.embeddings import HuggingFaceEmbeddings
+    return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")

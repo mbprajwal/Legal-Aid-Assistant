@@ -1,17 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, Bot, User, FileText, X, Download, Mic } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Send, Loader2, Bot, User, FileText, X, Download, Mic, RotateCcw } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const API_URL = 'http://127.0.0.1:8000';
 
-const ChatPage = () => {
+const ChatPage = ({ user }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [messages, setMessages] = useState([
         { role: 'assistant', content: 'Greetings. I am the Legal Aid Assistant. How may I assist you with your legal queries today?' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [currentSessionId, setCurrentSessionId] = useState(null);
     const messagesEndRef = useRef(null);
 
     // Document Generation State
@@ -32,6 +34,39 @@ const ChatPage = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Load session history if session_id is passed
+    useEffect(() => {
+        const loadSession = async () => {
+            if (location.state?.session_id) {
+                setCurrentSessionId(location.state.session_id);
+                try {
+                    const response = await fetch(`${API_URL}/chat/session/${location.state.session_id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.messages && data.messages.length > 0) {
+                            setMessages(data.messages);
+
+                            // Restore context to backend
+                            if (user?.email) {
+                                await fetch(`${API_URL}/chat/restore`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        user_id: user.email,
+                                        messages: data.messages
+                                    })
+                                });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to load session:", error);
+                }
+            }
+        };
+        loadSession();
+    }, [location.state, user]);
 
     useEffect(() => {
         if (showDocModal) {
@@ -62,7 +97,10 @@ const ChatPage = () => {
             const response = await fetch(`${API_URL}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_query: userMessage.content }),
+                body: JSON.stringify({
+                    user_query: userMessage.content,
+                    user_id: user?.email || "default_user"
+                }),
             });
 
             if (response.ok) {
@@ -76,6 +114,58 @@ const ChatPage = () => {
             setMessages(prev => [...prev, { role: 'assistant', content: "Connection Error: Backend server may be offline." }]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSaveAndExit = async () => {
+        if (user?.email) {
+            try {
+                await fetch(`${API_URL}/chat/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.email,
+                        session_id: currentSessionId
+                    }),
+                });
+            } catch (error) {
+                console.error("Failed to save chat:", error);
+            }
+        }
+        navigate('/home');
+    };
+
+    const handleNewSession = async () => {
+        if (!user?.email) return;
+
+        if (window.confirm("Are you sure you want to start a new session? Current chat history will be saved.")) {
+            try {
+                // 1. Save current session
+                await fetch(`${API_URL}/chat/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.email,
+                        session_id: currentSessionId
+                    }),
+                });
+
+                // 2. Start new session
+                await fetch(`${API_URL}/chat/new`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user.email }),
+                });
+
+                // 3. Reset UI
+                setMessages([
+                    { role: 'assistant', content: 'Greetings. I am the Legal Aid Assistant. How may I assist you with your legal queries today?' }
+                ]);
+                setGeneratedDocUrl(null);
+                setSelectedTemplate(null);
+            } catch (error) {
+                console.error("Error starting new session:", error);
+            }
         }
     };
 
@@ -131,10 +221,12 @@ const ChatPage = () => {
             <div className="p-4 border-b border-legal-border flex items-center justify-between bg-legal-bg">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate('/home')}
-                        className="p-2 hover:bg-white rounded-lg transition-colors text-legal-muted hover:text-legal-navy"
+                        onClick={handleSaveAndExit}
+                        className="p-2 hover:bg-white rounded-lg transition-colors text-legal-muted hover:text-legal-navy flex items-center gap-2"
+                        title="Save & Exit"
                     >
                         <ArrowLeft size={20} />
+                        <span className="text-sm font-medium">Save & Exit</span>
                     </button>
                     <div>
                         <h1 className="font-serif font-bold text-legal-navy">Active Session</h1>
@@ -145,6 +237,14 @@ const ChatPage = () => {
                     </div>
                 </div>
                 <div className="flex gap-2">
+                    <button
+                        onClick={handleNewSession}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-legal-navy/10 text-legal-navy border border-legal-navy/20 rounded-lg hover:bg-legal-navy/20 transition-all text-sm"
+                        title="Start New Session"
+                    >
+                        <RotateCcw size={16} />
+                        New Session
+                    </button>
                     <button
                         onClick={() => setShowVoiceModal(true)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-legal-navy/10 text-legal-navy border border-legal-navy/20 rounded-lg hover:bg-legal-navy/20 transition-all text-sm"

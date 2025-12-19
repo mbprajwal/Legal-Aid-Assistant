@@ -16,6 +16,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Import your chains
 from src.combined_chain import CombinedLegalChatbot     
 from src.document_chain import DocumentGeneratorChain
+from src.history_manager import HistoryManager
 
 app = FastAPI(title="Legal Aid Assistant API")
 
@@ -33,27 +34,107 @@ app.add_middleware(
 os.makedirs("generated_documents", exist_ok=True)
 app.mount("/generated_documents", StaticFiles(directory="generated_documents"), name="generated_documents")
 
-# Initialize chains
-chat_chain = CombinedLegalChatbot()
+# Global State
+# active_sessions = { "user_id": CombinedLegalChatbot_instance }
+active_sessions = {}
+history_manager = HistoryManager()
 doc_chain = DocumentGeneratorChain()
+
+def get_session(user_id: str):
+    """Get or create a chatbot session for a specific user."""
+    if user_id not in active_sessions:
+        print(f"✨ Creating new session for user: {user_id}")
+        active_sessions[user_id] = CombinedLegalChatbot()
+    return active_sessions[user_id]
 
 # ----------- MODELS -----------
 class ChatRequest(BaseModel):
     user_query: str
+    user_id: str = "default_user"  # Added user_id
+
+from typing import Optional
+
+class SaveChatRequest(BaseModel):
+    user_id: str = "default_user"
+    session_id: Optional[str] = None  # Added session_id
+
+class ResetRequest(BaseModel):
+    user_id: str = "default_user"
+
+class RestoreRequest(BaseModel):
+    user_id: str
+    messages: list
 
 class DocumentRequest(BaseModel):
     template_name: str
     user_inputs: dict
     user_query: str
 
-
 # ----------- ENDPOINTS -----------
 
 @app.post("/chat")
 def chat_endpoint(request: ChatRequest):
-    response = chat_chain.generate(request.user_query)
+    chatbot = get_session(request.user_id)
+    response = chatbot.generate(request.user_query)
     return {"response": response}
 
+@app.post("/chat/save")
+def save_chat(request: SaveChatRequest):
+    """Saves the current chat session to SQLite database."""
+    print(f"DEBUG: Saving chat for user {request.user_id}, session {request.session_id}")
+    chatbot = get_session(request.user_id)
+    
+    # Debug: Print memory type and contents
+    print(f"DEBUG: Chatbot memory type: {type(chatbot.memory)}")
+    try:
+        messages = chatbot.memory.get_history()
+        print(f"DEBUG: Retrieved messages count: {len(messages) if messages else 0}")
+        if messages:
+            print(f"DEBUG: First message: {messages[0]}")
+    except Exception as e:
+        print(f"DEBUG: Error getting history: {e}")
+        messages = []
+    
+    if not messages:
+        print("DEBUG: No messages to save")
+        return {"status": "ignored", "message": "No messages to save"}
+    
+    session_id = history_manager.save_session(request.user_id, messages)
+    print(f"DEBUG: Saved session {session_id}")
+    
+    # If an old session_id was provided, delete it to avoid duplicates
+    if request.session_id:
+        print(f"DEBUG: Deleting old session {request.session_id}")
+        history_manager.delete_session(request.session_id)
+        
+    return {"status": "saved", "session_id": session_id}
+
+@app.post("/chat/restore")
+def restore_chat(request: RestoreRequest):
+    """Restores chat history into the chatbot's memory."""
+    chatbot = get_session(request.user_id)
+    
+    # Clear existing memory first
+    chatbot.memory.history.clear()
+    
+    # Restore messages
+    for msg in request.messages:
+        if msg.get("role") == "user":
+            chatbot.memory.add_user_message(msg.get("content"))
+        elif msg.get("role") == "assistant":
+            chatbot.memory.add_assistant_response(msg.get("content"))
+            
+    return {"status": "success", "message": "Chat history restored"}
+
+@app.get("/chat/session/{session_id}")
+def get_session_history(session_id: str):
+    messages = history_manager.get_session_messages(session_id)
+    # Convert back to role/content format for frontend
+    formatted_messages = []
+    for m in messages:
+        role = "user" if m["type"] == "human" else "assistant"
+        formatted_messages.append({"role": role, "content": m["content"]})
+    return {"messages": formatted_messages}
 
 @app.post("/document/generate")
 def generate_document(request: DocumentRequest):
@@ -104,26 +185,27 @@ def list_templates():
                     print(f"Error reading {filename}: {e}")
     return {"templates": templates}
 
+@app.get("/chat/history")
+def get_history(user_id: str = "default_user"):
+    """Retrieves the last 3 chat sessions from SQLite."""
+    sessions = history_manager.get_recent_sessions(user_id, limit=3)
+    return {"sessions": sessions}
 
-# @app.post("/voice/chat")
-# async def voice_chat_endpoint(file: UploadFile = File(...)):
-#     # Save file temporarily
-#     temp_path = f"temp_{file.filename}"
-#     with open(temp_path, "wb") as f:
-#         f.write(await file.read())
+@app.post("/chat/new")
+def new_chat(request: ResetRequest):
+    """Clears the current memory to start a fresh chat."""
+    chatbot = get_session(request.user_id)
+    
+    # Clear the in-memory history
+    chatbot.memory.history.clear()
+    # Reset any active document state
+    chatbot._clear_document_state()
+    return {"status": "success", "message": "New chat started, memory cleared"}
 
-#     text = transcribe_audio(temp_path)
-#     response = chat_chain.run(text)
-
-#     return {
-#         "transcription": text,
-#         "response": response
-#     }
-
-
-@app.get("/session/reset")
-def reset_memory():
-    chat_chain.memory.reset()
+@app.post("/session/reset")
+def reset_memory(request: ResetRequest):
+    chatbot = get_session(request.user_id)
+    chatbot.memory.history.clear()
     return {"status": "Memory cleared"}
 
 

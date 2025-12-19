@@ -5,11 +5,46 @@ import { useNavigate } from 'react-router-dom';
 
 const HomePage = ({ user, setUser }) => {
     const navigate = useNavigate();
+    const [sessions, setSessions] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
 
     const handleSignOut = () => {
         localStorage.removeItem('user');
         setUser(null);
         navigate('/');
+    };
+
+    // Fetch history on mount
+    React.useEffect(() => {
+        const fetchHistory = async () => {
+            if (!user?.email) return;
+            try {
+                // Using email as user_id for now
+                const response = await fetch(`http://localhost:8000/chat/history?user_id=${user.email}`);
+                const data = await response.json();
+                setSessions(data.sessions || []);
+            } catch (error) {
+                console.error("Failed to fetch history:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHistory();
+    }, [user]);
+
+    const startNewSession = async () => {
+        if (!user?.email) return;
+        try {
+            await fetch("http://localhost:8000/chat/new", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: user.email })
+            });
+            navigate('/chat');
+        } catch (error) {
+            console.error("Error starting new session:", error);
+            navigate('/chat'); // Navigate anyway
+        }
     };
 
     const facts = [
@@ -34,12 +69,6 @@ const HomePage = ({ user, setUser }) => {
             q: "Is the advice binding?",
             a: "No, this is an AI assistant for informational purposes only. Always consult a qualified lawyer for legal action."
         }
-    ];
-
-    const previousChats = [
-        { id: 1, title: "Property Dispute Inquiry", date: "2 days ago" },
-        { id: 2, title: "Traffic Violation Fine", date: "5 days ago" },
-        { id: 3, title: "Rental Agreement Draft", date: "1 week ago" },
     ];
 
     return (
@@ -119,32 +148,43 @@ const HomePage = ({ user, setUser }) => {
                         <p className="text-blue-100 mb-8 max-w-xs">Begin a new consultation with the AI Legal Assistant.</p>
 
                         <button
-                            onClick={() => navigate('/chat')}
+                            onClick={startNewSession}
                             className="px-8 py-4 bg-white text-legal-navy font-bold rounded-xl flex items-center gap-2 hover:bg-blue-50 transition-all transform hover:-translate-y-1 shadow-lg"
                         >
                             Initialize Chat <ArrowRight size={20} />
                         </button>
                     </div>
 
-                    {/* Previous Chats - Bottom Half */}
-                    <div className="flex-1 bg-white border border-legal-border rounded-2xl p-6 shadow-sm flex flex-col">
-                        <h3 className="text-xl font-serif font-bold text-legal-navy mb-4 flex items-center gap-2">
-                            <Clock size={20} /> Previous Sessions
-                        </h3>
+                    {/* Previous Chats - Simple List */}
+                    <div className="flex-[2] bg-white border border-legal-border rounded-2xl p-6 shadow-sm flex flex-col">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Clock size={20} className="text-legal-navy" />
+                            <h3 className="text-xl font-serif font-bold text-legal-navy">Previous Sessions</h3>
+                        </div>
 
-                        <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-                            {previousChats.map((chat) => (
-                                <div key={chat.id} className="p-3 bg-legal-bg rounded-lg border border-legal-border hover:border-legal-navy/30 transition-all cursor-pointer group">
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-medium text-legal-text group-hover:text-legal-navy transition-colors">{chat.title}</span>
-                                        <span className="text-xs text-legal-muted">{chat.date}</span>
+                        <div className="flex-1 space-y-3">
+                            {loading ? (
+                                <div className="text-legal-muted text-sm">Loading...</div>
+                            ) : sessions.length === 0 ? (
+                                <div className="text-legal-muted text-sm italic">No history yet</div>
+                            ) : (
+                                sessions.slice(0, 3).map((session) => (
+                                    <div
+                                        key={session.session_id}
+                                        onClick={() => navigate('/chat', { state: { session_id: session.session_id } })}
+                                        className="p-3 bg-legal-bg rounded-lg border border-legal-border cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center"
+                                    >
+                                        <span className="font-medium text-legal-navy text-sm truncate flex-1 mr-4">
+                                            {session.preview || "Untitled Session"}
+                                        </span>
+                                        <span className="text-xs text-legal-muted whitespace-nowrap">
+                                            {new Date(session.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                        </span>
                                     </div>
-                                </div>
-                            ))}
-                            {/* Dummy filler to show scroll if needed */}
-                            <div className="p-3 bg-legal-bg rounded-lg border border-legal-border opacity-50">
-                                <span className="text-legal-muted text-sm italic">End of history</span>
-                            </div>
+                                ))
+                            )}
+
+
                         </div>
                     </div>
                 </motion.div>

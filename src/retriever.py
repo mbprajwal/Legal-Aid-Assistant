@@ -45,6 +45,20 @@ def init_pinecone():
     return index
 
 
+# from langchain.schema import Document  <-- Removed dependency
+
+class MockDocument:
+    def __init__(self, page_content, metadata=None):
+        self.page_content = page_content
+        self.metadata = metadata or {}
+
+class MockRetriever:
+    def get_relevant_documents(self, query):
+        return [MockDocument(page_content="Pinecone is not connected. This is a mock document.")]
+    
+    def invoke(self, query):
+        return [MockDocument(page_content="Pinecone is not connected. This is a mock document.")]
+
 # ---------------------------------------------------------
 # Build LangChain Retriever
 # ---------------------------------------------------------
@@ -55,21 +69,25 @@ def build_retriever(top_k: int = 5):
     - Pinecone vector index
     - cosine similarity search
     """
+    try:
+        embeddings = load_embedding_model()
+        index = init_pinecone()
 
-    embeddings = load_embedding_model()
-    index = init_pinecone()
+        # langchain-pinecone wrapper
+        vectorstore = PineconeVectorStore(
+            index=index,
+            embedding=embeddings,
+            text_key="text",      
+            namespace=None        
+        )
 
-    # langchain-pinecone wrapper
-    vectorstore = PineconeVectorStore(
-        index=index,
-        embedding=embeddings,
-        text_key="text",      
-        namespace=None        
-    )
+        retriever = vectorstore.as_retriever(
+            search_kwargs={"k": top_k}
+        )
 
-    retriever = vectorstore.as_retriever(
-        search_kwargs={"k": top_k}
-    )
-
-    print("Retriever initialized using langchain-pinecone.")
-    return retriever
+        print("Retriever initialized using langchain-pinecone.")
+        return retriever
+    except Exception as e:
+        print(f"⚠️ Failed to initialize Pinecone retriever: {e}")
+        print("⚠️ Using MockRetriever instead.")
+        return MockRetriever()

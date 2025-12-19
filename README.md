@@ -34,7 +34,8 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install fastapi uvicorn pyrebase4 requests
+# Install dependencies
+pip3 install -r requirements.txt
 ```
 
 ### 3. Frontend Setup (React + Vite)
@@ -51,9 +52,10 @@ You need to run **both** the backend and frontend terminals simultaneously.
 This runs the API on **Port 8000**.
 ```bash
 # Make sure you are in the root 'Legal-Aid-Assistant' folder
-uvicorn login.authapi:app --reload --port 8000
+export PYTHONPATH=$PYTHONPATH:.
+python3 app/api_server.py
 ```
-*You should see: `Uvicorn running on http://127.0.0.1:8000`*
+*You should see: `Uvicorn running on http://0.0.0.0:8000`*
 
 ### Terminal 2: Start Frontend Server
 This runs the React App on **Port 5173**.

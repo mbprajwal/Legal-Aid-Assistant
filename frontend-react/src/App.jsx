@@ -212,7 +212,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<LoginPage setUser={setUser} />} />
                     <Route path="/home" element={<HomePage user={user} setUser={setUser} />} />
-                    <Route path="/chat" element={<ChatPage />} />
+                    <Route path="/chat" element={<ChatPage user={user} />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </div>

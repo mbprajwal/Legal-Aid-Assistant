@@ -30,3 +30,5 @@ pandas
 requests
 tqdm
 fpdf
+vosk
+sounddevice
