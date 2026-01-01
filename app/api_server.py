@@ -198,8 +198,6 @@ def new_chat(request: ResetRequest):
     
     # Clear the in-memory history
     chatbot.memory.history.clear()
-    # Reset any active document state
-    chatbot._clear_document_state()
     return {"status": "success", "message": "New chat started, memory cleared"}
 
 @app.post("/session/reset")

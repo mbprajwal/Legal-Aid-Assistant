@@ -10,5 +10,23 @@
         "password": "praj123",
         "firstName": "prajwal",
         "lastName": "m"
+    },
+    {
+        "email": "aa@gmail.com",
+        "password": "password",
+        "firstName": "akanksh",
+        "lastName": "konduruu"
+    },
+    {
+        "email": "prajwalmb412@gmail.com",
+        "password": "prajwal123",
+        "firstName": "prajwal",
+        "lastName": "mb"
+    },
+    {
+        "email": "prajwalmb411@gmail.com",
+        "password": "password",
+        "firstName": "prajwal",
+        "lastName": "mb"
     }
 ]

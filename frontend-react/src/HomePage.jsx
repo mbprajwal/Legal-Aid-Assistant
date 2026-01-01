@@ -89,12 +89,12 @@ const HomePage = ({ user, setUser }) => {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-hidden">
                 {/* Left Section: Facts & FAQs */}
                 <motion.div
                     initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="space-y-6 overflow-y-auto pr-2 custom-scrollbar"
+                    className="lg:col-span-2 space-y-6 overflow-y-auto pr-2 custom-scrollbar"
                 >
                     <section>
                         <h2 className="text-2xl font-serif font-bold text-legal-navy mb-4 flex items-center gap-2">
@@ -134,24 +134,30 @@ const HomePage = ({ user, setUser }) => {
                 <motion.div
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex flex-col gap-6 h-full"
+                    className="lg:col-span-3 flex flex-col gap-6 h-full"
                 >
                     {/* Start Chat - Top Half */}
-                    <div className="flex-1 bg-gradient-to-br from-legal-navy to-blue-900 rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-xl relative overflow-hidden group">
+                    <div className="flex-1 min-h-[320px] bg-gradient-to-br from-legal-navy via-blue-800 to-blue-900 rounded-2xl p-10 flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden group">
+                        {/* Animated background pattern */}
                         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-legal-gold/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-                        <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                            <MessageSquare size={40} className="text-white" />
+                        {/* Icon */}
+                        <div className="relative z-10 w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                            <MessageSquare size={48} className="text-white" strokeWidth={2} />
                         </div>
 
-                        <h2 className="text-3xl font-serif font-bold text-white mb-2">Start New Session</h2>
-                        <p className="text-blue-100 mb-8 max-w-xs">Begin a new consultation with the AI Legal Assistant.</p>
+                        {/* Text Content */}
+                        <h2 className="relative z-10 text-4xl font-serif font-bold text-white mb-3 tracking-tight">Start New Session</h2>
+                        <p className="relative z-10 text-blue-100/90 mb-10 max-w-sm text-base leading-relaxed">Begin a new consultation with the AI Legal Assistant.</p>
 
+                        {/* CTA Button */}
                         <button
                             onClick={startNewSession}
-                            className="px-8 py-4 bg-white text-legal-navy font-bold rounded-xl flex items-center gap-2 hover:bg-blue-50 transition-all transform hover:-translate-y-1 shadow-lg"
+                            className="relative z-10 px-10 py-4 bg-white text-legal-navy font-bold rounded-xl flex items-center gap-3 hover:bg-blue-50 transition-all transform hover:-translate-y-1 hover:shadow-2xl shadow-xl text-base"
                         >
-                            Initialize Chat <ArrowRight size={20} />
+                            Initialize Chat <ArrowRight size={22} strokeWidth={2.5} />
                         </button>
                     </div>
 
@@ -164,9 +170,22 @@ const HomePage = ({ user, setUser }) => {
 
                         <div className="flex-1 space-y-3">
                             {loading ? (
-                                <div className="text-legal-muted text-sm">Loading...</div>
+                                <div className="flex items-center justify-center h-full">
+                                    <div className="text-legal-muted text-sm flex items-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-legal-navy border-t-transparent rounded-full animate-spin"></div>
+                                        Loading sessions...
+                                    </div>
+                                </div>
                             ) : sessions.length === 0 ? (
-                                <div className="text-legal-muted text-sm italic">No history yet</div>
+                                <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                                    <div className="w-20 h-20 bg-legal-bg rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                                        <Clock size={36} className="text-legal-muted/40" strokeWidth={1.5} />
+                                    </div>
+                                    <h4 className="font-bold text-legal-navy mb-2">No Previous Sessions</h4>
+                                    <p className="text-legal-muted text-sm max-w-xs leading-relaxed">
+                                        Your chat history will appear here once you start your first conversation.
+                                    </p>
+                                </div>
                             ) : (
                                 sessions.slice(0, 3).map((session) => (
                                     <div

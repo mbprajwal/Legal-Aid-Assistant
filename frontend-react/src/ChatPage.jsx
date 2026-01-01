@@ -24,8 +24,7 @@ const ChatPage = ({ user }) => {
     const [generatingDoc, setGeneratingDoc] = useState(false);
     const [generatedDocUrl, setGeneratedDocUrl] = useState(null);
 
-    // Voice Chat State
-    const [showVoiceModal, setShowVoiceModal] = useState(false);
+
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -246,7 +245,7 @@ const ChatPage = ({ user }) => {
                         New Session
                     </button>
                     <button
-                        onClick={() => setShowVoiceModal(true)}
+                        onClick={() => window.open('https://legal-aid-web.vercel.app/', '_blank')}
                         className="flex items-center gap-2 px-3 py-1.5 bg-legal-navy/10 text-legal-navy border border-legal-navy/20 rounded-lg hover:bg-legal-navy/20 transition-all text-sm"
                     >
                         <Mic size={16} />
@@ -436,40 +435,7 @@ const ChatPage = ({ user }) => {
                 )}
             </AnimatePresence>
 
-            {/* Voice Chat Modal */}
-            <AnimatePresence>
-                {showVoiceModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white border border-legal-border rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden"
-                        >
-                            <div className="p-4 border-b border-legal-border flex justify-between items-center bg-legal-bg">
-                                <h2 className="text-lg font-bold text-legal-navy flex items-center gap-2">
-                                    <Mic className="text-legal-gold" size={20} />
-                                    Voice Assistant
-                                </h2>
-                                <button
-                                    onClick={() => setShowVoiceModal(false)}
-                                    className="text-legal-muted hover:text-legal-text transition-colors"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
-                            <div className="p-4 h-[500px] flex items-center justify-center text-legal-muted">
-                                <p>Voice chat feature is currently unavailable.</p>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
         </motion.div>
     );
 };
